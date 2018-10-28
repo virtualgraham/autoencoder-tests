@@ -8,11 +8,11 @@ from data_prep import list_training_files, list_testing_files
 # 147456 -> 6144 -> 147456
 # 1.00 -> 0.042 -> 1.00
 
-epochs = 10
+epochs = 15
 learning_rate = 0.001
 batch_size = 10
 
-model_path = "./autoencoder/model/model.ckpt"
+model_path = "./autoencoder/model/model_v2.ckpt"
 
 def read_image_file(filename, _):
         
@@ -153,7 +153,7 @@ def test():
                 reconstructed = sess.run(decoded)
 
                 for i in range(0,3):
-                        print(reconstructed[i])
+                        #print(reconstructed[i])
                         axes[i].imshow(reconstructed[i].reshape((128,384, 3)))
                         axes[i].get_xaxis().set_visible(False)
                         axes[i].get_yaxis().set_visible(False)
@@ -166,7 +166,7 @@ def train():
 
         opt = tf.train.AdamOptimizer(learning_rate).minimize(cost)
 
-        saver = tf.train.Saver()
+        saver = tf.train.Saver(tf.global_variables())
 
         with tf.Session() as sess:
 
@@ -186,6 +186,4 @@ def train():
 
 
 train()
-
-is_training = False
 test()

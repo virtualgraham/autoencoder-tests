@@ -9,9 +9,9 @@ from data_prep import list_training_files, list_testing_files
 # 147456 -> 6144 -> 147456
 # 1.00 -> 0.042 -> 1.00
 
-batch_size = 3
+batch_size = 5
 
-model_path = "./autoencoder/model/model.ckpt"
+model_path = "./autoencoder/model/model_v2.ckpt"
 
 def read_image_file(filename):
         
@@ -24,8 +24,8 @@ def read_image_file(filename):
         
         return image
 
-is_training = False
-training_files = list_testing_files()
+is_training = True
+training_files = list_training_files()
         
 
 ##########
@@ -90,7 +90,7 @@ def read_encoded_image_file(filename):
     data = np.load(filename.decode())
     return data.astype(np.float32)
 
-encoded_files = ['./autoencoder/test/test0.npz.npy','./autoencoder/test/test1.npz.npy','./autoencoder/test/test2.npz.npy']
+encoded_files = ['./autoencoder/test/test0.npy','./autoencoder/test/test1.npy','./autoencoder/test/test2.npy','./autoencoder/test/test3.npy','./autoencoder/test/test4.npy']
 
 decoder_dataset = tf.data.Dataset.from_tensor_slices((encoded_files))
 decoder_dataset = decoder_dataset.map(lambda item: tf.py_func(read_encoded_image_file, [item], tf.float32))
@@ -158,15 +158,17 @@ def encode():
         with tf.Session() as sess:
                 saver.restore(sess, model_path)
                 print("Model restored.")
-
+                
                 _encoded = sess.run(encoded)
                 print('_encoded', _encoded.shape)
+                # print(_encoded)
 
                 for i in range(0, _encoded.shape[0]):
-                    f = './autoencoder/test/test' + str(i) + '.npz'
+                    f = './autoencoder/test/test' + str(i)
                     print('_encoded[i].shape', _encoded[i].shape)
                     np.save(f, _encoded[i])
                     print('saved', f)
+
 
 def decode():
 
@@ -179,14 +181,16 @@ def decode():
                 
                 _encoded_in = sess.run(encoded_in)
                 print('_encoded_in.size', _encoded_in.shape)
+                # print(_encoded_in)
 
                 _decoded = sess.run(decoded)
 
                 print('_decoded', _decoded.shape)
+                print(_decoded)
 
-                fig, axes = plt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(20,4))
+                fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(20,4))
 
-                for i in range(0,3):
+                for i in range(0,5):
                         axes[i].imshow(_decoded[i].reshape((128, 384, 3)))
                         axes[i].get_xaxis().set_visible(False)
                         axes[i].get_yaxis().set_visible(False)
