@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from data_prep import list_training_files, list_testing_files
 
 
-epochs = 3
+epochs = 1
 learning_rate = 0.001
 batch_size = 10
 
@@ -25,8 +25,7 @@ def read_image_file(filename, _):
         return image, target_image
 
 is_training = False
-training_files = list_training_files()[:10]
-print('len(training_files)', len(training_files))
+training_files = list_training_files()[:100]
 
 dataset = tf.data.Dataset.from_tensor_slices((training_files, training_files))
 dataset = dataset.shuffle(len(training_files))
@@ -97,7 +96,7 @@ upsample2_norm = tf.layers.batch_normalization(upsample2, training=is_training, 
 print('upsample2', upsample2.get_shape())
 # Now 32x96x16
 
-conv6 = tf.layers.conv2d(inputs=upsample2, filters=32, kernel_size=(3,3), padding='same', kernel_initializer=tf.glorot_normal_initializer(), activation=tf.nn.relu, name="conv6")
+conv6 = tf.layers.conv2d(inputs=upsample2_norm, filters=32, kernel_size=(3,3), padding='same', kernel_initializer=tf.glorot_normal_initializer(), activation=tf.nn.relu, name="conv6")
 conv6_norm = tf.layers.batch_normalization(conv6, training=is_training, name="conv6_norm")
 print('conv6', conv6.get_shape())
 # Now 32x96x16
@@ -123,13 +122,13 @@ print('conv8', conv8.get_shape())
 # Now 128x384x32
 
 decoded = tf.layers.conv2d(inputs=conv8_norm, filters=3, kernel_size=(3,3), padding='same', kernel_initializer=tf.glorot_normal_initializer(), activation=None, name="decoded")
-decoded_norm = tf.layers.batch_normalization(decoded, training=is_training, name="decoded_norm")
+#decoded_norm = tf.layers.batch_normalization(decoded, training=is_training, name="decoded_norm")
 print('decoded', decoded.get_shape())
 # Now 128x384x3
 
 print('targets_', targets_.get_shape())
 
-loss = tf.losses.mean_squared_error(targets_, decoded_norm)
+loss = tf.losses.mean_squared_error(targets_, decoded)
 
 # Get cost and define the optimizer
 cost = tf.reduce_mean(loss)
@@ -137,6 +136,7 @@ cost = tf.reduce_mean(loss)
 def test():
 
         is_training = False
+
         saver = tf.train.Saver()
 
         with tf.Session() as sess:
@@ -147,9 +147,10 @@ def test():
 
                 fig, axes = plt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(20,4))
 
-                reconstructed = sess.run(decoded_norm)
+                reconstructed = sess.run(decoded)
 
                 for i in range(0,3):
+                        print(reconstructed[i])
                         axes[i].imshow(reconstructed[i].reshape((128,384, 3)))
                         axes[i].get_xaxis().set_visible(False)
                         axes[i].get_yaxis().set_visible(False)
@@ -181,9 +182,11 @@ def train():
                         save_path = saver.save(sess, model_path)
                         print("Model saved in path: %s" % save_path)
 
-                        fig, axes = plt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(20,4))
+                
+                
+                fig, axes = plt.subplots(nrows=1, ncols=3, sharex=True, sharey=True, figsize=(20,4))
 
-                reconstructed = sess.run(decoded_norm)
+                reconstructed = sess.run(decoded)
 
                 for i in range(0,3):
                         axes[i].imshow(reconstructed[i].reshape((128,384, 3)))
