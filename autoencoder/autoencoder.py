@@ -8,7 +8,7 @@ from data_prep import list_training_files, list_testing_files
 # 147456 -> 6144 -> 147456
 # 1.00 -> 0.042 -> 1.00
 
-epochs = 1
+epochs = 10
 learning_rate = 0.001
 batch_size = 10
 
@@ -29,7 +29,7 @@ def read_image_file(filename, _):
         return image, target_image
 
 is_training = True
-training_files = list_training_files()[:100]
+training_files = list_training_files()
         
 dataset = tf.data.Dataset.from_tensor_slices((training_files, training_files))
 dataset = dataset.shuffle(len(training_files))
