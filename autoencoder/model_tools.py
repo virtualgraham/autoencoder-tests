@@ -2,18 +2,19 @@ import numpy as np
 import h5py
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from data_prep import list_training_files, list_testing_files
-
+from data_prep import list_training_files, list_testing_files, list_all_files, list_testing_sequences
+import os
+import errno
 
 # 128x384x3 -> 8x24x32 -> 128x384x3
 # 147456 -> 6144 -> 147456
 # 1.00 -> 0.042 -> 1.00
 
-batch_size = 5
+batch_size = 26
 
 model_path = "./autoencoder/model/model_v2.ckpt"
 
-def read_image_file(filename):
+def read_image_file(filename, _):
         
         print('filename', filename)
 
@@ -22,25 +23,25 @@ def read_image_file(filename):
         image = tf.image.decode_png(image_string, channels=3)
         image = tf.image.convert_image_dtype(image, tf.float32)
         
-        return image
+        return image, filename
 
 is_training = True
-training_files = list_training_files()
+training_files = list_all_files()[:26]
         
 
 ##########
 # ENCODER #
 ##########
 
-dataset = tf.data.Dataset.from_tensor_slices((training_files))
-dataset = dataset.shuffle(len(training_files))
+dataset = tf.data.Dataset.from_tensor_slices((training_files, training_files))
+#dataset = dataset.shuffle(len(training_files))
 dataset = dataset.map(read_image_file, num_parallel_calls=4)
 dataset = dataset.batch(batch_size)
 dataset = dataset.prefetch(1)
 dataset = dataset.repeat(-1)
 
 iterator = dataset.make_one_shot_iterator()
-img_in = iterator.get_next()
+img_in, img_names = iterator.get_next()
 
 encoderInputs = tf.placeholder_with_default(img_in, (None, 128, 384, 3), name='encoderInputs')
 
@@ -90,7 +91,7 @@ def read_encoded_image_file(filename):
     data = np.load(filename.decode())
     return data.astype(np.float32)
 
-encoded_files = ['./autoencoder/test/test0.npy','./autoencoder/test/test1.npy','./autoencoder/test/test2.npy','./autoencoder/test/test3.npy','./autoencoder/test/test4.npy']
+encoded_files = list_testing_sequences(5)[1566]
 
 decoder_dataset = tf.data.Dataset.from_tensor_slices((encoded_files))
 decoder_dataset = decoder_dataset.map(lambda item: tf.py_func(read_encoded_image_file, [item], tf.float32))
@@ -149,7 +150,7 @@ decoded = tf.layers.conv2d(inputs=conv8_norm, filters=3, kernel_size=(5,5), padd
 print('decoded', decoded.get_shape())
 # Now 128x384x3
 
-
+encoded_dir = '../datasets/kitti/encoded_v1/'
 
 def encode():
 
@@ -158,16 +159,27 @@ def encode():
         with tf.Session() as sess:
                 saver.restore(sess, model_path)
                 print("Model restored.")
-                
-                _encoded = sess.run(encoded)
-                print('_encoded', _encoded.shape)
-                # print(_encoded)
+                print('len(training_files)', len(training_files))
 
-                for i in range(0, _encoded.shape[0]):
-                    f = './autoencoder/test/test' + str(i)
-                    print('_encoded[i].shape', _encoded[i].shape)
-                    np.save(f, _encoded[i])
-                    print('saved', f)
+                for ii in range(len(training_files)//batch_size):
+
+                        _img_names, _encoded = sess.run([img_names, encoded])
+
+                        for i in range(0, _img_names.shape[0]):
+                                s = _img_names[i].index('format1/') + len('format1/')
+                                n = _img_names[i][s:-4]
+
+                                filename = encoded_dir  + n
+
+                                if not os.path.exists(os.path.dirname(filename)):
+                                        try:
+                                                os.makedirs(os.path.dirname(filename))
+                                        except OSError as exc: # Guard against race condition
+                                                if exc.errno != errno.EEXIST:
+                                                        raise
+
+                                np.save(filename, _encoded[i])
+                                print('saved', filename, "Iteration: {}".format(ii * batch_size + i))
 
 
 def decode():
@@ -186,7 +198,6 @@ def decode():
                 _decoded = sess.run(decoded)
 
                 print('_decoded', _decoded.shape)
-                print(_decoded)
 
                 fig, axes = plt.subplots(nrows=1, ncols=5, sharex=True, sharey=True, figsize=(20,4))
 
@@ -198,5 +209,4 @@ def decode():
                 fig.tight_layout(pad=0.1)
                 plt.show()
 
-encode()
 decode()

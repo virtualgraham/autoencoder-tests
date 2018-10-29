@@ -149,40 +149,129 @@ train_drives = [
     ('campus', '2011_09_28', '0016'),
 ]
 
-zips_dir = '../datasets/kitti/zips/'
+kitti_dir = '../datasets/kitti/'
+zips_dir = kitti_dir + 'zips/'
+format_dir = kitti_dir + 'format1/'
+encoded_dir = kitti_dir + 'encoded_v1/'
+
+def list_drive_encoded_files(drive):
+
+    paths = list()
+
+    drive_date = drive[1]
+    drive_number = drive[2]
+
+    drive_dir = encoded_dir + drive_date + '_' + drive_number + '/'
+
+    drive_encoded_files = [f for f in listdir(drive_dir) if isfile(join(drive_dir, f))]
+
+    for filename in drive_encoded_files:
+
+        source_path = join(drive_dir, filename)
+        paths.append(source_path)
+
+    paths.sort()
+
+    return paths
 
 
+def get_encoded_sequences_from_drive(drive, seq_len):
 
-def list_files(drives_array):
+    encoded_files = list_drive_encoded_files(drive)
+
+    seq_count = len(encoded_files) - seq_len + 1
+
+    sequences = list()
+
+    for i in range(0, seq_count):
+
+        seq = list()
+
+        for j in range(0, seq_len):
+
+            seq.append(encoded_files[i+j])
+
+        sequences.append(seq)
+
+    return sequences
+
+
+def get_encoded_sequences_from_drives(drives_array, seq_len):
+
+    sequences = list()
+
+    for drive in drives_array:
+
+        drive_sequences = get_encoded_sequences_from_drive(drive, seq_len)
+        sequences.extend(drive_sequences)
+
+    return sequences
+
+# returns a list containing for each drive a list containing for each sequence a list containing npy filenames
+def list_training_sequences(seq_len):
+
+    return get_encoded_sequences_from_drives(train_drives, seq_len)
+
+
+def list_testing_sequences(seq_len):
+
+    return get_encoded_sequences_from_drives(test_drives, seq_len)
+
+def list_all_sequences(seq_len):
+
+    return get_encoded_sequences_from_drives(drives, seq_len)
+
+
+def list_drive_png_files(drive):
+
+    paths = list()
+
+    drive_date = drive[1]
+    drive_number = drive[2]
+
+    drive_dir = format_dir + drive_date + '_' + drive_number + '/'
+
+    drive_pngs = [f for f in listdir(drive_dir) if isfile(join(drive_dir, f))]
+
+    for filename in drive_pngs:
+
+        source_path = join(drive_dir, filename)
+        paths.append(source_path)
+
+    paths.sort()
+
+    return paths
+
+
+def list_png_files(drives_array):
     
     paths = list()
 
     for drive in drives_array:
 
-        drive_date = drive[1]
-        drive_number = drive[2]
-
-        drive_dir = '../datasets/kitti/format1/' + drive_date + '_' + drive_number + '/'
-
-        drive_pngs = [f for f in listdir(drive_dir) if isfile(join(drive_dir, f))]
-
-        for filename in drive_pngs:
-
-            source_path = join(drive_dir, filename)
-            paths.append(source_path)
+        drive_paths = list_drive_png_files(drive)
+        paths.extend(drive_paths)
 
     return paths
 
 
 def list_training_files():
 
-    return list_files(train_drives)
+    return list_png_files(train_drives)
 
 
 def list_testing_files():
 
-    return list_files(test_drives)
+    return list_png_files(test_drives)
 
+def list_all_files():
+
+    return list_png_files(drives)
+
+
+
+
+    
 
 def convert():
 
@@ -256,8 +345,3 @@ def download_raw_data():
 
         print subprocess.check_output(['rm', '-r', unziped_file_dir])
         print subprocess.check_output(['rm', zip_file_dest,])
-
-#download_raw_data()
-
-paths = list_testing_files()
-print(len(paths))
