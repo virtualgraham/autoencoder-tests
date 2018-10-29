@@ -150,7 +150,7 @@ decoded = tf.layers.conv2d(inputs=conv8_norm, filters=3, kernel_size=(5,5), padd
 print('decoded', decoded.get_shape())
 # Now 128x384x3
 
-encoded_dir = '../datasets/kitti/encoded_v1/'
+encoded_dir = '/space/datasets/kitti/encoded_v1/'
 
 def encode():
 

@@ -149,7 +149,7 @@ train_drives = [
     ('campus', '2011_09_28', '0016'),
 ]
 
-kitti_dir = '../datasets/kitti/'
+kitti_dir = '/space/datasets/kitti/'
 zips_dir = kitti_dir + 'zips/'
 format_dir = kitti_dir + 'format1/'
 encoded_dir = kitti_dir + 'encoded_v1/'
@@ -281,8 +281,8 @@ def convert():
         drive_date = drive[1]
         drive_number = drive[2]
 
-        source_dir = '../datasets/kitti/seqs/' + drive_date + '_' + drive_number + '/left/'
-        dest_dir = '../datasets/kitti/format1/' + drive_date + '_' + drive_number + '/'
+        source_dir = kitti_dir + 'seqs/' + drive_date + '_' + drive_number + '/left/'
+        dest_dir = kitti_dir + 'format1/' + drive_date + '_' + drive_number + '/'
 
         print subprocess.check_output(['mkdir', '--parents', dest_dir])
 
@@ -334,7 +334,7 @@ def download_raw_data():
 
         for filename in pngs:
             source_path = join(left_color_img_dir, filename)
-            dest_dir = '../datasets/kitti/seqs/' + drive_date + '_' + drive_number + '/left'
+            dest_dir = kitti_dir + 'seqs/' + drive_date + '_' + drive_number + '/left'
             dest_path = join(dest_dir, filename)
 
             print('dest_dir', dest_dir)
