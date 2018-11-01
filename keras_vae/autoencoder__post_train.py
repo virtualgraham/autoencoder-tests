@@ -25,20 +25,26 @@ img_tensor /= 255.
 # Its shape is (1, 150, 150, 3)
 print(img_tensor.shape)
 
-
-
 plt.imshow(img_tensor[0])
 plt.show()
 
-autoencoder_input = Input(shape=(128, 384, 3))
-autoencoder = Model( autoencoder_input, decoder_model(encoder_model(autoencoder_input)) )
+random = np.random.rand(1, 8, 24, 32)
 
-pred = autoencoder.predict(img_tensor)
+rand_decoded = decoder_model.predict(random)
 
-print(pred)
-
-plt.imshow(pred[0])
+plt.imshow(rand_decoded[0])
 plt.show()
+
+
+# autoencoder_input = Input(shape=(128, 384, 3))
+# autoencoder = Model( autoencoder_input, decoder_model(encoder_model(autoencoder_input)) )
+
+# pred = autoencoder.predict(img_tensor)
+
+# print(pred)
+
+# plt.imshow(pred[0])
+# plt.show()
 
 # from keras import models
 
