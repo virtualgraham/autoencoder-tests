@@ -1,4 +1,4 @@
-import numpy as npsdfsa 
+import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
 from data_prep import list_training_files, list_testing_files
@@ -10,9 +10,9 @@ from data_prep import list_training_files, list_testing_files
 
 epochs = 15
 learning_rate = 0.001
-batch_size = 10
+batch_size = 13
 
-model_path = "./autoencoder/model/model_v2.ckpt"
+model_path = "./autoencoder/model/model_v3.ckpt"
 
 def read_image_file(filename, _):
         
@@ -44,7 +44,7 @@ img_in, img_out = iterator.get_next()
 inputs_ = tf.placeholder_with_default(img_in, (None, 128, 384, 3), name='inputs')
 targets_ = tf.placeholder_with_default(img_out, (None, 128, 384, 3), name='target')
 
-# Now 128x384x3
+
 
 conv1 = tf.layers.conv2d(inputs=inputs_, filters=64, kernel_size=(5,5), padding='same', kernel_initializer=tf.glorot_normal_initializer(), activation=tf.nn.relu, name="conv1")
 conv1_norm = tf.layers.batch_normalization(conv1, training=is_training, name="conv1_norm")
